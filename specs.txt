@@ -1,0 +1,82 @@
+==== Instruction Format ====
+7       1
+IIII IIVV
+
+I = Instruction type
+V = Variant
+
+==== Operants ====
+
+<R> = Register
+    <R1> First Register
+<u8> = Unsinged Byte
+<s8> = Singed Byte
+<u16> = Unsinged Word (2 Byte Little endian (Least significant Byte first))
+
+==== Registers ====
+BIN     R SIZE
+0001(1) A u8
+0010(2) B u8
+0011(3) C u8
+0100(4) D u8
+
+1001(9) SP u8
+
+
+Sytem Registers: NOT SETTED USING LOD
+1000(8) F u8 Flags Register
+        C Carry (1 << 0)
+        Z Zero (1 << 1)
+        G Greater (1 << 2)
+        E Equal (1 << 3)
+        I Interupt (1 << 4)
+        B Break (1 << 5)
+        O Overflow (1 << 6)
+        N Negtive (1 << 7)
+
+---- PC u16
+
+==== Instructions ====
+0x00  0000 0000     NOP             Does nothing
+0x04  0000 0100     LOD <R, u8>     Load <u8> into <R>
+0x04  0000 0101     LOD <R, u16>    Load value at memory <u16> into <R>
+0x08  0000 1000     STO <R, u16>    Store <R> at memory <u16>
+0x0c  0000 1100     JMP <u16>       Sets PC to <u16>
+0x10  0001 0000     CMP <u8>        Compares <u8> with A
+
+0x14  0001 0100     BEQ <s8>        Branch if equal
+0x18  0001 1000     BNE <s8>        Not Equal (if EQ Flag is not set)
+0x19  0001 1001     BZ <s8>         Zero
+0x1a  0001 1010     BGT <s8>        Greater-Than
+0x1b  0001 1011     BN <s8>         Negative                            
+0x1c  0001 1100     BC <s8>         Carry
+0x1d  0001 1101     BO <s8>         Overflow
+
+0x20  0010 0000     PSH <u8>        Stack Push u8
+0x21  0010 0001     PSH <R>         Stack Push Reg
+0x24  0010 0100     POP <R>         Stack Pop
+
+0x28  0010 1000     ADD <R>         Add Value of <R> to A
+0x29  0010 1001     SUB <R>         SUB like Ins:0x28
+0x2a  0010 1010     ABC <R>         ADC with Carry
+0x2c  0010 1100     AND <R>         A &= V(<R>)
+0x2d  0010 1101     OR <R>          A ||= V(<R>)
+0x2e  0010 1110     NOT             Inverts A
+
+0x30  0011 0000     LR <R>          Rotate A by V(<R>) bits Left
+0x31  0011 0001     RR <R>          Rotate A by V(<R>) bits Right
+0x32  0011 0010     LR <u8>         Rotate A byte <u8> bits left
+0x33  0011 0011     RR <u8>         Rotate A byte <u8> bits right
+
+0x34  0011 0100     LS <R>          Shift A by V(<R>) bits Left
+0x35  0011 0101     RS <R>          Shift A by V(<R>) bits Right
+0x36  0011 0110     LS <R>          Shift A by <u8> bits Left
+0x37  0011 0111     RS <R>          Shift A by <u8> bits Right
+
+0x38  0011 1000     TR <R1, R2>     Transfer value of <R2> to <R1>
+0x39  0011 1001     SF <v8>         Set flags
+0x3c  0011 1100     INT <u8>        Calles interrupt <u8> (defined in interrupttable)
+
+0x40  0100 0000     JSR <u16>       Jump to subroutine (Push PC + 1 to stack, Low-Byte First, The instruction right after JSR (PC(JSR) + 1 = INS:$0x00) Should be NOP (as rts returns to the following instruction))
+0x41  0100 0001     RTS             Return From subroutine (Pop PC from Stack)
+0x42  0100 0010     HLT             Stop execution
